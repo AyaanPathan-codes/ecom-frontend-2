@@ -2,6 +2,7 @@ import React, { useContext, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import axios from "axios";
 import AppContext from "../Context/Context";
+import { getProductImageSrc, handleImageFallback } from "../utils/productImage";
 
 const Home = () => {
   const { data, isError, refreshData } = useContext(AppContext);
@@ -60,6 +61,12 @@ const Home = () => {
               to={`/product/${product.id}`}
               style={{ textDecoration: "none", color: "inherit" }}
             >
+              <img
+                src={getProductImageSrc(product)}
+                alt={product.name}
+                className="product-card-image"
+                onError={handleImageFallback}
+              />
               <div
                 className="card-body"
                 style={{
@@ -72,7 +79,7 @@ const Home = () => {
               >
                 <div>
                   <h5 className="card-title" style={{ margin: "0 0 10px 0" }}>
-                    {product.name.toUpperCase()}
+                    {product.name?.toUpperCase()}
                   </h5>
                   <span className="card-brand">
                     by <i style={{ fontStyle: "italic" }}>{product.brand}</i>

@@ -1,10 +1,11 @@
 import { useParams } from "react-router-dom";
 import {  useEffect, useState } from "react";
 import axios from "../axios";
+import { getProductImageSrc, handleImageFallback } from "../utils/productImage";
 
 const Product = () => {
   const { id } = useParams();
-const [product, setProduct] = useState(null);
+  const [product, setProduct] = useState(null);
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -35,6 +36,14 @@ const [product, setProduct] = useState(null);
   return (
     <>
       <div className="containers">
+        <div className="left-column">
+          <img
+            src={getProductImageSrc(product)}
+            alt={product.name}
+            className="active left-column-img"
+            onError={handleImageFallback}
+          />
+        </div>
         <div className="right-column">
           <div className="product-description">
             <span>{product.category}</span>
@@ -45,22 +54,26 @@ const [product, setProduct] = useState(null);
 
           <div className="product-price">
             <span>{"$" + product.price}</span>
-            <button
-              className={`cart-btn ${!product.productAvailable ? "disabled-btn" : ""}`}
-              disabled={!product.productAvailable}
-            >
-              {product.productAvailable ? "Add to cart" : "Out of Stock"}
-            </button>
+           <button
+  className={`cart-btn ${!product.available ? "disabled-btn" : ""}`}
+  disabled={!product.available}
+>
+  {product.available ? "Add to cart" : "Out of Stock"}
+</button>
+
+<h6>
+  Stock Available:
+  <i>{product.quantity ?? product.stockQuantity}</i>
+</h6>
             <h6>
               Stock Available :{" "}
               <i style={{ color: "green", fontWeight: "bold" }}>
-                {product.stockQuantity}
+                {product.stockQuantity ?? product.quantity}
               </i>
             </h6>
-            <p className="release-date">
-              <h6>Product listed on:</h6>
-              <i>{product.releaseDate}</i>
-            </p>
+           <p>
+  Product listed on: <span>{product.releaseDate ?? product.releasedate}</span>
+</p>
           </div>
           <div className="update-button ">
             <button
