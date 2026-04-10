@@ -1,175 +1,203 @@
 import React, { useState } from "react";
-import axios from "../axios";
-
-const initialFormState = {
-  name: "",
-  brand: "",
-  category: "",
-  description: "",
-  price: "",
-  stockQuantity: "",
-  releaseDate: "",
-  available: true,
-};
+import axios from "axios";
 
 const AddProduct = () => {
-  const [formData, setFormData] = useState(initialFormState);
-  const [imageFile, setImageFile] = useState(null);
-  const [previewUrl, setPreviewUrl] = useState("");
-  const [statusMessage, setStatusMessage] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [product, setProduct] = useState({
+    name: "",
+    brand: "",
+    description: "",
+    price: "",
+    category: "",
+    quantity: "",
+    releaseDate: "",
+    available: false,
+  });
+  const [image, setImage] = useState(null);
 
-  const handleChange = (event) => {
-    const { name, value, type, checked } = event.target;
-
-    setFormData((currentFormData) => ({
-      ...currentFormData,
-      [name]: type === "checkbox" ? checked : value,
-    }));
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setProduct({ ...product, [name]: value });
   };
 
-  const handleImageChange = (event) => {
-    const file = event.target.files?.[0] || null;
-    setImageFile(file);
-
-    if (!file) {
-      setPreviewUrl("");
-      return;
-    }
-
-    setPreviewUrl(URL.createObjectURL(file));
+  const handleImageChange = (e) => {
+    setImage(e.target.files[0]);
+    console.log(e.target.files[0]);
+    
+    // setProduct({...product, image: e.target.files[0]})
   };
 
-  const resetForm = () => {
-    setFormData(initialFormState);
-    setImageFile(null);
-    setPreviewUrl("");
-  };
-
-  const handleSubmit = async (event) => {
+  const submitHandler = (event) => {
     event.preventDefault();
-    setStatusMessage("");
-    setIsSubmitting(true);
+    const formData = new FormData();
+    formData.append("imageFile", image);
+    formData.append(
+      "product",
+      new Blob([JSON.stringify(product)], { type: "application/json" })
+    );
 
-    try {
-      const payload = new FormData();
-
-      Object.entries(formData).forEach(([key, value]) => {
-        payload.append(key, value);
-      });
-
-      if (imageFile) {
-        payload.append("image", imageFile);
-      }
-
-      await axios.post("/product", payload, {
+    axios
+      .post("http://localhost:8080/api/product", formData, {
         headers: {
           "Content-Type": "multipart/form-data",
         },
+      })
+      .then((response) => {
+        console.log("Product added successfully:", response.data);
+        alert("Product added successfully");
+      })
+      .catch((error) => {
+        console.error("Error adding product:", error);
+        alert("Error adding product");
       });
-
-      setStatusMessage("Product added successfully.");
-      resetForm();
-    } catch (error) {
-      console.error("Error adding product:", error);
-      setStatusMessage("Unable to add product. Please check the backend image API.");
-    } finally {
-      setIsSubmitting(false);
-    }
   };
 
   return (
     <div className="container">
-      <div className="center-container add-product-form-wrapper">
-        <h2 className="mb-4 text-center">Add Product</h2>
-        <form className="add-product-form" onSubmit={handleSubmit}>
+    <div className="center-container">
+      <form className="row g-3 pt-5" onSubmit={submitHandler}>
+        <div className="col-md-6">
+          <label className="form-label">
+            <h6>Name</h6>
+          </label>
           <input
+            type="text"
             className="form-control"
+            placeholder="Product Name"
+            onChange={handleInputChange}
+            value={product.name}
             name="name"
-            placeholder="Product name"
-            value={formData.name}
-            onChange={handleChange}
-            required
           />
+        </div>
+        <div className="col-md-6">
+          <label className="form-label">
+            <h6>Brand</h6>
+          </label>
           <input
-            className="form-control"
+            type="text"
             name="brand"
-            placeholder="Brand"
-            value={formData.brand}
-            onChange={handleChange}
-            required
+            className="form-control"
+            placeholder="Enter your Brand"
+            value={product.brand}
+            onChange={handleInputChange}
+            id="brand"
           />
+        </div>
+        <div className="col-12">
+          <label className="form-label">
+            <h6>Description</h6>
+          </label>
           <input
+            type="text"
             className="form-control"
-            name="category"
-            placeholder="Category"
-            value={formData.category}
-            onChange={handleChange}
-            required
-          />
-          <textarea
-            className="form-control"
+            placeholder="Add product description"
+            value={product.description}
             name="description"
-            placeholder="Description"
-            rows="4"
-            value={formData.description}
-            onChange={handleChange}
-            required
+            onChange={handleInputChange}
+            id="description"
           />
+        </div>
+        <div className="col-5">
+          <label className="form-label">
+            <h6>Price</h6>
+          </label>
           <input
+            type="number"
             className="form-control"
+            placeholder="Eg: $1000"
+            onChange={handleInputChange}
+            value={product.price}
             name="price"
-            type="number"
-            min="0"
-            step="0.01"
-            placeholder="Price"
-            value={formData.price}
-            onChange={handleChange}
-            required
+            id="price"
           />
+        </div>
+     
+           <div className="col-md-6">
+          <label className="form-label">
+            <h6>Category</h6>
+          </label>
+          <select
+            className="form-select"
+            value={product.category}
+            onChange={handleInputChange}
+            name="category"
+            id="category"
+          >
+            <option value="">Select category</option>
+            <option value="Laptop">Laptop</option>
+            <option value="Headphone">Headphone</option>
+            <option value="Mobile">Mobile</option>
+            <option value="Electronics">Electronics</option>
+            <option value="Toys">Toys</option>
+            <option value="Fashion">Fashion</option>
+          </select>
+        </div>
+
+        <div className="col-md-4">
+          <label className="form-label">
+            <h6>Stock Quantity</h6>
+          </label>
           <input
-            className="form-control"
-            name="stockQuantity"
             type="number"
-            min="0"
-            placeholder="Stock quantity"
-            value={formData.stockQuantity}
-            onChange={handleChange}
-            required
-          />
-          <input
             className="form-control"
-            name="releaseDate"
+            placeholder="Stock Remaining"
+            onChange={handleInputChange}
+            value={product.quantity}
+            name="quantity"
+            // value={`${stockAlert}/${stockQuantity}`}
+            id="quantity"
+          />
+        </div>
+        <div className="col-md-4">
+          <label className="form-label">
+            <h6>Release Date</h6>
+          </label>
+          <input
             type="date"
-            value={formData.releaseDate}
-            onChange={handleChange}
+            className="form-control"
+            value={product.releaseDate}
+            name="releaseDate"
+            onChange={handleInputChange}
+            id="releaseDate"
           />
+        </div>
+        {/* <input className='image-control' type="file" name='file' onChange={(e) => setProduct({...product, image: e.target.files[0]})} />
+    <button className="btn btn-primary" >Add Photo</button>  */}
+        <div className="col-md-4">
+          <label className="form-label">
+            <h6>Image</h6>
+          </label>
           <input
-            className="form-control image-control"
-            name="image"
+            className="form-control"
             type="file"
-            accept="image/*"
             onChange={handleImageChange}
           />
-          {previewUrl ? (
-            <img src={previewUrl} alt="Preview" className="add-product-preview" />
-          ) : null}
-          <label className="form-check-label availability-toggle">
+        </div>
+        <div className="col-12">
+          <div className="form-check">
             <input
               className="form-check-input"
-              name="available"
               type="checkbox"
-              checked={formData.available}
-              onChange={handleChange}
+              name="available"
+              id="gridCheck"
+              checked={product.available}
+              onChange={(e) =>
+                setProduct({ ...product, available: e.target.checked })
+              }
             />
-            Available
-          </label>
-          <button className="btn btn-primary" type="submit" disabled={isSubmitting}>
-            {isSubmitting ? "Saving..." : "Add Product"}
+            <label className="form-check-label">Product Available</label>
+          </div>
+        </div>
+        <div className="col-12">
+          <button
+            type="submit"
+            className="btn btn-primary"
+            // onClick={submitHandler}
+          >
+            Submit
           </button>
-        </form>
-        {statusMessage ? <p className="add-product-status">{statusMessage}</p> : null}
-      </div>
+        </div>
+      </form>
+    </div>
     </div>
   );
 };

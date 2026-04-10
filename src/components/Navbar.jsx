@@ -1,108 +1,71 @@
-import React, { useEffect, useState } from "react";
-import Home from "./Home"
-import axios from "axios";
+import { useState } from "react";
+import { Link } from "react-router-dom";
 
-const Navbar = ({ onSelectCategory, onSearch }) => {
-  const getInitialTheme = () => {
-    const storedTheme = localStorage.getItem("theme");
-    return storedTheme ? storedTheme : "light-theme";
-  }; 
+const Navbar = ({ onSelectCategory }) => {
+  const [input, setInput] = useState("");
 
-  const [theme, setTheme] = useState(getInitialTheme());
-  
+  const categories = [
+    "Laptop",
+    "Headphone",
+    "Mobile",
+    "Electronics",
+    "Toys",
+    "Fashion",
+  ];
 
-  
-  const toggleTheme = () => {
-    const newTheme = theme === "dark-theme" ? "light-theme" : "dark-theme";
-    setTheme(newTheme);
-    localStorage.setItem("theme", newTheme);
-  };
-
-  useEffect(() => {
-    document.body.className = theme;
-  }, [theme]);
-
-  
   return (
-    <>
-      <header>
-        <nav className="navbar navbar-expand-lg fixed-top">
-          <div className="container-fluid">
-            <a className="navbar-brand" >
-              ShopIt
-            </a>
-            <button
-              className="navbar-toggler"
-              type="button"
-              data-bs-toggle="collapse"
-              data-bs-target="#navbarSupportedContent"
-              aria-controls="navbarSupportedContent"
-              aria-expanded="false"
-              aria-label="Toggle navigation"
-            >
-              <span className="navbar-toggler-icon"></span>
+    <nav className="fixed top-0 left-0 w-full bg-slate-900 text-white shadow-md z-50">
+      <div className="max-w-7xl mx-auto flex items-center justify-between px-6 py-3">
+        
+        {/* Logo */}
+        <Link to="/" className="text-xl font-bold">
+          Telusko
+        </Link>
+
+        {/* Menu */}
+        <div className="flex items-center gap-6">
+          <Link to="/" className="hover:text-blue-400 transition">
+            Home
+          </Link>
+
+          <Link to="/add_product" className="hover:text-blue-400 transition">
+            Add Product
+          </Link>
+
+          {/* Dropdown */}
+          <div className="relative group">
+            <button className="hover:text-blue-400">
+              Categories
             </button>
-            <div
-              className="collapse navbar-collapse"
-              id="navbarSupportedContent"
-            >
-              <ul className="navbar-nav me-auto mb-2 mb-lg-0">
-                <li className="nav-item">
-                  <a className="nav-link active" aria-current="page" href="/">
-                    Home
-                  </a>
-                </li>
-                <li className="nav-item">
-                  <a className="nav-link" href="/add_product">
-                    Add Product
-                  </a>
-                </li>
 
-                {/* < className="nav-item dropdown"> */}
-                  <a
-                    className="nav-link dropdown-toggle"
-                    href="/"
-                    role="button"
-                    data-bs-toggle="dropdown"
-                    aria-expanded="false"
-                  >
-                    Categories
-                  </a>
-
-                
-
-                <li className="nav-item"></li>
-              </ul>
-              <button className="theme-btn" onClick={() => toggleTheme()}>
-                {theme === "dark-theme" ? (
-                  <i className="bi bi-moon-fill"></i>
-                ) : (
-                  <i className="bi bi-sun-fill"></i>
-                )}
-              </button>
-              <div className="d-flex align-items-center cart">
-                <a href="/cart" className="nav-link text-dark">
-                  <i
-                    className="bi bi-cart me-2"
-                    style={{ display: "flex", alignItems: "center" }}
-                  >
-                    Cart
-                  </i>
-                </a>
-              
-                <input
-                  className="form-control me-2"
-                  type="search"
-                  placeholder="Search"
-                  aria-label="Search"                
-                />
-                <div />
-              </div>
+            <div className="absolute hidden group-hover:block bg-white text-black mt-2 rounded shadow-md w-40">
+              {categories.map((category) => (
+                <div
+                  key={category}
+                  onClick={() => onSelectCategory(category)}
+                  className="px-4 py-2 hover:bg-gray-200 cursor-pointer"
+                >
+                  {category}
+                </div>
+              ))}
             </div>
           </div>
-        </nav>
-      </header>
-    </>
+
+          <Link to="/cart" className="hover:text-blue-400">
+            🛒 Cart
+          </Link>
+
+          {/* Search */}
+          <input
+            type="text"
+            placeholder="Search"
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            className="px-3 py-1 rounded bg-slate-800 border border-slate-700 focus:outline-none"
+          />
+        </div>
+      </div>
+    </nav>
   );
 };
 

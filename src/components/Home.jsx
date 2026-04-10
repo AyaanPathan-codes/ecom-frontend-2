@@ -1,113 +1,114 @@
 import React, { useContext, useEffect, useState } from "react";
-import { Link } from "react-router-dom";
 import axios from "axios";
 import AppContext from "../Context/Context";
-import { getProductImageSrc, handleImageFallback } from "../utils/productImage";
+import ProductCard from "./ProductCard.jsx";
+import { useLocation } from "react-router-dom";
 
-const Home = () => {
-  const { data, isError, refreshData } = useContext(AppContext);
+      // 🔥 THIS IS THE FIX
+const Home = ({ selectedCategory }) => {
+  const { data, isError, addToCart, refreshData } = useContext(AppContext);
   const [products, setProducts] = useState([]);
   const [isDataFetched, setIsDataFetched] = useState(false);
 
+  const location = useLocation();
+
+
+
+  // Fetch products
   useEffect(() => {
     if (!isDataFetched) {
       refreshData();
       setIsDataFetched(true);
     }
   }, [refreshData, isDataFetched]);
-
+useEffect(() => {
+  refreshData();   // ✅ correct
+}, [location]);
+  // Fetch images
   useEffect(() => {
     if (data && data.length > 0) {
-      const fetchData = async () => {
-        try {
-          const response = await axios.get(
-            "http://localhost:8080/api/products"
-          );
-          setProducts(response.data);
-          console.log(response.data);
-        } catch (error) {
-          console.error("Error fetching data:", error);
-        }
+      const fetchImages = async () => {
+        const updatedProducts = await Promise.all(
+          data.map(async (product) => {
+            try {
+              const response = await axios.get(
+                `http://localhost:8080/api/product/${product.id}/image`,
+                { responseType: "blob" }
+              );
+
+              const imageUrl = URL.createObjectURL(response.data);
+
+              return {
+                ...product,
+                imageUrl,
+                productAvailable: product.productAvailable ?? true,
+              };
+            } catch (error) {
+              return {
+                ...product,
+                imageUrl:
+                  "https://via.placeholder.com/300x200?text=No+Image",
+                productAvailable: product.productAvailable ?? true,
+              };
+            }
+          })
+        );
+        console.log(updatedProducts);
+        
+        setProducts(updatedProducts);
       };
-      fetchData();
+
+      fetchImages();
     }
   }, [data]);
 
+  // Filter
+  const filteredProducts = selectedCategory
+    ? products.filter((p) => p.category === selectedCategory)
+    : products;
+
+  // Error UI
   if (isError) {
     return (
-      <h2 className="text-center" style={{ padding: "10rem" }}>
-        Something went wrong...
-      </h2>
+      <div className="flex justify-center items-center h-[70vh]">
+        <h2 className="text-xl font-semibold text-red-500">
+          Something went wrong...
+        </h2>
+      </div>
     );
   }
 
   return (
-    <>
-      <div className="grid">
-        {products.map((product) => (
-          <div
-            className="card mb-3"
-            key={product.id}
-            style={{
-              width: "18rem",
-              height: "14rem",
-              boxShadow: "rgba(0, 0, 0, 0.24) 0px 2px 3px",
-              margin: "10px",
-              display: "flex",
-              flexDirection: "column",
-            }}
-          >
-            <Link
-              to={`/product/${product.id}`}
-              style={{ textDecoration: "none", color: "inherit" }}
-            >
-              <img
-                src={getProductImageSrc(product)}
-                alt={product.name}
-                className="product-card-image"
-                onError={handleImageFallback}
-              />
-              <div
-                className="card-body"
-                style={{
-                  flexGrow: 1,
-                  display: "flex",
-                  flexDirection: "column",
-                  justifyContent: "space-between",
-                  padding: "10px",
-                }}
-              >
-                <div>
-                  <h5 className="card-title" style={{ margin: "0 0 10px 0" }}>
-                    {product.name?.toUpperCase()}
-                  </h5>
-                  <span className="card-brand">
-                    by <i style={{ fontStyle: "italic" }}>{product.brand}</i>
-                  </span>
-                </div>
-                <div>
-                  <h5
-                    className="card-text"
-                    style={{ fontWeight: "600", margin: "10px 0" }}
-                  >
-                    {"$" + product.price}
-                  </h5>
-                  <button
-                    className="btn btn-primary"
-                    style={{ width: "100%", marginTop: "15px" }}
-                    onClick={(e) => {
-                      e.preventDefault();
-                    }}
-                  >
-                    Add to Cart
-                  </button>
-                </div>
-              </div>
-            </Link>
-          </div>
-        ))}
+    <div className="min-h-screen bg-gray-100">
+      {/* Page Title */}
+      <div className="px-6 pt-6">
+        <h1 className="text-2xl font-bold text-gray-800">
+          Products
+        </h1>
+        <p className="text-gray-500 text-sm">
+          Browse all available items
+        </p>
       </div>
-    </>
+
+      {/* Grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 p-6">
+        {filteredProducts.length === 0 ? (
+          <div className="col-span-full flex justify-center items-center h-[50vh]">
+            <h2 className="text-lg font-medium text-gray-600">
+              No Products Available
+            </h2>
+          </div>
+        ) : (
+          filteredProducts.map((product) => (
+            <ProductCard
+              key={product.id}
+              product={product}
+              addToCart={addToCart}
+            />
+          ))
+        )}
+      </div>
+    </div>
   );
 };
 

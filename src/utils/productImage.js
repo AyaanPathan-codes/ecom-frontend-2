@@ -1,10 +1,12 @@
+import productPlaceholder from "../assets/product-placeholder.svg";
+
 const API_BASE_URL = "http://localhost:8080";
 
 const absoluteUrlPattern = /^(https?:\/\/|data:|blob:)/i;
 
 export const getProductImageSrc = (product) => {
   if (!product) {
-    return "";
+    return productPlaceholder;
   }
 
   const directImageValue =
@@ -32,11 +34,10 @@ export const getProductImageSrc = (product) => {
     return `${API_BASE_URL}/api/product/${product.id}/image`;
   }
 
-  return "";
+  return productPlaceholder;
 };
 
 export const handleImageFallback = (event) => {
   event.currentTarget.onerror = null;
-  event.currentTarget.src =
-    "https://via.placeholder.com/600x400?text=No+Image";
+  event.currentTarget.src = productPlaceholder;
 };
